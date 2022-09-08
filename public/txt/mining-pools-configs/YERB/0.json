@@ -1,0 +1,73 @@
+{
+	"payout_addresses" : {
+      "yaLd56xTDpjBqB5XoCW5iUHxVT7Cdd6UgC" : {
+        "name" : "MiningPools.Pro",
+        "link" : "https://miningpools.pro/"
+      },
+      "yZnv61SBAE1wivqrePTncqDTiCMMFw9L2M" : {
+        "name" : "timyg.org",
+        "link" : "http://rtm.timyg.org/#Yerb"
+      },
+      "yP7GcTMciXozqMws8m4cEeME2VKDjScUpF" : {
+        "name" : "Crimson-Pool",
+        "link" : "https://crimson-pool.com/#yerb"
+      },
+      "yR2kQGamwu3qC7bBzXycoPaacXzmEuZidk" : {
+        "name" : "cryptoverse",
+        "link" : "https://pool.cryptoverse.eu/"
+      },
+      "yeJszcRFFdMdaGDSgzP28sAZqeozBVNMRq" : {
+        "name" : "zpool",
+        "link" : "https://zpool.ca/"
+      },
+      "yNhLcEF4zpQKdNcTrc4YEAFEqCAS4iq4jX" : {
+        "name" : "miningpool2u",
+        "link" : "https://miningpool2u.com/#yerb"
+      },
+      "yNhLcEF4zpQKdNcTrc4YEAFEqCAS4iq4jX" : {
+        "name" : "zergpool",
+        "link" : "https://zergpool.com/"
+      },
+      "yPwp33aK9EjzrQXLycYDiBj3smFZBT2K1Y" : {
+	 "name" : "Rplant",
+	 "link" : "https://pool.rplant.xyz/"
+			}
+  },
+
+	"coinbase_tags": {
+    "MININGPOOLS.PRO": {
+      "name": "MiningPools.Pro",
+      "link": "https://miningpools.pro/"
+    },
+        "Crimson-Pool": {
+      "name": "Crimson-Pool",
+      "link": "https://crimson-pool.com/#yerb"
+    },
+        "cryptoverse": {
+      "name": "cryptoverse",
+      "link": "https://pool.cryptoverse.eu/"
+    },
+        "zpool": {
+      "name": "zpool",
+      "link": "https://zpool.ca/"
+    },
+        "timyg": {
+      "name": "timyg",
+      "link": "http://rtm.timyg.org/#Yerb/"
+    },
+        "miningpool2u": {
+      "name": "miningpool2u",
+      "link": "https://miningpool2u.com/#yerb"
+    },
+        "zergpool": {
+      "name": "zergpool",
+      "link": "https://zergpool.com/"
+    },
+
+        "pool.rplant.xyz" : {
+      "name" : "rplant",
+      "link" : "https://pool.rplant.xyz/"
+		}
+
+  }
+}
