@@ -2,6 +2,7 @@ var btc = require("./coins/btc.js");
 var ltc = require("./coins/ltc.js");
 var pgn = require("./coins/pgn.js");
 var rtm = require("./coins/rtm.js");
+var yerb = require("./coins/yerb.js");
 var pyrk = require("./coins/pyrk.js");
 
 module.exports = {
@@ -9,9 +10,10 @@ module.exports = {
 	"LTC": ltc,
 	"PGN": pgn,
 	"RTM": rtm,
+	"YERB": yerb,
 	"PYRK" : pyrk,
 	
-	"coins":["BTC", "LTC", "PGN", "RTM"],
+	"coins":["BTC", "LTC", "PGN", "YERB", "RTM"],
 
 	networks : {
 		BTC : {
@@ -67,6 +69,31 @@ module.exports = {
 		  port: 8333,
 		  dnsSeeds: [
 		    'explorer.raptoreum.com'
+		  ]
+		},
+		YERB : {
+			bitcoinjs : {
+				messagePrefix: '\x18Yerbas Signed Message:\n',
+			  bech32: 'yr',
+			  bip32: {
+			    public: 0x0488b21e,
+			    private: 0x0488ade4,
+			  },
+			  pubKeyHash: 140,
+			  scriptHash: 19,
+			  wif: 0x80,
+			},
+			name: 'yerbas',
+		  alias: 'yerbas mainnet',
+		  pubkeyhash: 140,
+		  privatekey: 128,
+		  scripthash: 122,
+		  xpubkey: 0x0488b21e,
+		  xprivkey: 0x0488ade4,
+		  networkMagic: 0x79657262,
+		  port: 8333,
+		  dnsSeeds: [
+		    'explorer2.yerbas.org'
 		  ]
 		},
 		PYRK : {

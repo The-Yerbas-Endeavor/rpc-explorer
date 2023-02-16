@@ -19,21 +19,21 @@ class CoinBase {
 			},
 			{
 				type:"native",
-				name:"mRTM",
+				name:"mYERB",
 				multiplier:1000,
 				values:[`m${ticker.toLowerCase()}`],
 				decimalPlaces:5
 			},
 			{
 				type:"native",
-				name:"bits",
+				name:"uYERB",
 				multiplier:1000000,
 				values:["bits"],
 				decimalPlaces:2
 			},
 			{
 				type:"native",
-				name:"rap",
+				name:"weeds",
 				multiplier:100000000,
 				values:satUnits,
 				decimalPlaces:0

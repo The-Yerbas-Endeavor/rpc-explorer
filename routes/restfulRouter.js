@@ -10,10 +10,12 @@ const config = require("./../app/config.js");
 const Decimal = require("decimal.js");
 const moment = require('moment');
 const request = require('request').defaults({ rejectUnauthorized: false });
+const MongoDB = require("../app/database/mongodb.js")
 
 class RestfulRouter {
-	constructor(router, apiProperties) {
+	constructor(router, apiProperties,config) {
 		this.apiProperties = apiProperties;
+		this.db = new MongoDB(config);
 		var self = this;
 		apiProperties.api_map.forEach(api => {
 			router.get(`/${api.uri}`, (req, res, next) => {
@@ -149,25 +151,26 @@ class RestfulRouter {
 			if(query.start < 0) {
 				query.start = 0;
 			}
-			request(`${process.env.CHAIN_API_URL}/${global.coinConfig.ticker}/richlist?page=${query.start/query.limit}&size=${query.limit}&sort=balance,desc`, { json: true }, (err, res, body) => {
-			  if (err) { return reject(err); }
-				let wallets = body.content;
-				var walletRecords = [];
-				for(let i in wallets) {
-					walletRecords.push({
-						Rank :  query.start + Number(i) + 1,
-						Address : wallets[i].address,
-						Label : wallets[i].label ? wallets[i].label : "",
-						Balance : Number(wallets[i].balance).toLocaleString()
-					})
+			this.db.queryRichList(query.start,query.limit).then(walletRecords => {
+				var records = [];
+				var idx = 0;
+				for(var a in walletRecords){
+					idx++;
+					records.push({
+						//address', 'label', 'balance
+						Rank:a,
+						Address:walletRecords[a].address,
+						Label:walletRecords[a].label,
+						Balance:walletRecords[a].balance / coinConfig.baseCurrencyUnit.multiplier
+					});
 				}
 				resolve({
-					data : walletRecords,
+					data : records,
 					draw : query.draw,
-					recordsTotal : body.totalElements,
-					recordsFiltered : body.totalElements
+					recordsTotal : query.limit - query.start,
+					recordsFiltered : query.limit -query.start
 				});
-			});
+			}).catch(reject);
 		});
 	}
 

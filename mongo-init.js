@@ -1,11 +1,11 @@
 db.createUser(
   {
-    user: "rtmuser",
-    pwd: "pass",
+    user: "rpcexplorer",
+    pwd: "3xp!0reR",
     roles: [
       {
         role: "readWrite",
-        db: "rtmexplorer"
+        db: "explorerdb"
       }
     ]
   }

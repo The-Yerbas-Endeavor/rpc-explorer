@@ -747,6 +747,8 @@ function getOutputAddressForBlocks(fromHeight, endHeight) {
 	return new Promise(async (resolve, reject) => {
 		var blockCountLimit = 100;
 		var addresses = {};
+		if(fromHeight == 0)
+		fromHeight = 1;
 		console.log("Syncing Addresses from %s to %s blocks", fromHeight, endHeight);
 		for(var height = fromHeight; height < endHeight;) {
 			var blockHashRequests = [];

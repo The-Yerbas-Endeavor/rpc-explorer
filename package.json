@@ -11,15 +11,14 @@
   "keywords": [
     "bitcoin",
     "litecoin",
-    "pigeoncoin",
-    "raptoreum",
+    "Yerbas",
     "blockchain"
   ],
-  "author": "Tri Nguyen",
+  "author": "Yerbman",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/npq7721/rpc-explorer.git"
+    "url": "git+https://github.com/The-Yerbas-Endeavor/rpc-explorer.git"
   },
   "dependencies": {
     "@dashevo/dashcore-lib": "^0.18.12",

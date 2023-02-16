@@ -132,7 +132,7 @@ function loadMiningPoolConfigs() {
 
 function getSourcecodeProjectMetadata() {
 	var options = {
-		url: "https://api.github.com/repos/janoside/btc-rpc-explorer",
+		url: "https://api.github.com/The-Yerbas-Endeavor/ravenassetjs-lib.git",
 		headers: {
 			'User-Agent': 'request'
 		}
@@ -179,7 +179,7 @@ app.onStartup = function() {
 				debugLog(`Starting ${global.coinConfig.ticker} RPC Explorer, v${global.appVersion} (code: unknown commit)`);
 
 			} else {
-				global.sourcecodeVersion = log.all[0].hash.substring(0, 10);
+				global.sourcecodeVersion = log.all[0].hash.substring(0, 40);
 				global.sourcecodeDate = log.all[0].date.substring(0, "0000-00-00".length);
 
 				debugLog(`Starting ${global.coinConfig.ticker} RPC Explorer, v${global.appVersion} (commit: '${global.sourcecodeVersion}', date: ${global.sourcecodeDate})`);
@@ -233,13 +233,13 @@ app.continueStartup = function() {
 		password: process.env.DB_PASSWORD,
 		database : process.env.DB_DATABASE
 	}
-	// global.blockchainSync = new BlockchainSync(mongoDBConfig);
-	// global.blockchainSync.syncAddressBalance().then(result => {
-	// 	console.log("addresss balance ", result);
-	// }).catch(err => {
-	// 	console.log(err);
-	// 	utils.logError("32ugegdfsde", err);
-	//});
+	 global.blockchainSync = new BlockchainSync(mongoDBConfig);
+	 global.blockchainSync.syncAddressBalance().then(result => {
+	 	console.log("addresss balance ", result);
+	 }).catch(err => {
+	 	console.log(err);
+	 	utils.logError("32ugegdfsde", err);
+	});
 
 	if(global.coinConfig.masternodeSupported) {
 		utils.scheduleCheckIps();
@@ -446,7 +446,14 @@ if(coins[config.coin].api) {
 	var limiter = rateLimit(apiProperties.limit);
 	var apiRounter = express.Router();
 	app.use(apiProperties.base_uri, limiter);
-	var restfulAPI = new Restful(apiRounter, apiProperties);
+	var mongoDBConfig = {
+		address : process.env.DB_URL,
+		port : process.env.DB_PORT,
+		user : process.env.DB_USERNAME,
+		password: process.env.DB_PASSWORD,
+		database : process.env.DB_DATABASE
+	}
+	var restfulAPI = new Restful(apiRounter, apiProperties,mongoDBConfig);
 	app.use(apiProperties.base_uri, apiRounter);
 }
 

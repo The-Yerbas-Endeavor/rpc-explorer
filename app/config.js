@@ -184,8 +184,8 @@ module.exports = {
 				"LTC":"https://btc.chaintools.io"
 			},
 
-			"BTC":{address:"3Jym9QJLXQyjSSGKS1LCD9LCroPqCGo3Lq"},
-			"LTC":{address:"LeBistdbcpTDbztr4GU9P29WZzGqJVmnjT"}
+			"BTC":{address:"bc1qwlut2vdy4ak2wu7l4kagcf923merxvmwsjhd33"},
+			"LTC":{address:"ltc1qkhme8ux6fssejgz350e7a2n9ngszjjpe6zpz3y"}
 		}
 		/*btcpayserver:{
 			host:"https://btcpay.chaintools.io",
