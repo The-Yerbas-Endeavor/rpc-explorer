@@ -132,7 +132,7 @@ function loadMiningPoolConfigs() {
 
 function getSourcecodeProjectMetadata() {
 	var options = {
-		url: "https://api.github.com/The-Yerbas-Endeavor/ravenassetjs-lib.git",
+		url: "https://api.github.com/repos/janoside/btc-rpc-explorer",
 		headers: {
 			'User-Agent': 'request'
 		}
