@@ -17,7 +17,7 @@ function log() {
 
 function externalBlockHeight() {
   if [[ -n "${CHAIN_API_URL}" ]]; then
-    block_height_result=$(curl -k -X GET ${CHAIN_API_URL}/rtm/getblockcount/)
+    block_height_result=$(curl -k -X GET ${CHAIN_API_URL}/yerb/getblockcount/)
     block_height=$(GetNumber block_height_result)
     echo $block_height
   fi
