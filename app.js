@@ -34,7 +34,7 @@ var utils = require("./app/utils.js");
 var moment = require("moment");
 var Decimal = require('decimal.js');
 var bitcoinCore = require("bitcoin-core");
-var BTCEventListener = require("./app/api/btcEventListeners.js");
+//var BTCEventListener = require("./app/api/btcEventListeners.js");
 var pug = require("pug");
 var momentDurationFormat = require("moment-duration-format");
 var coreApi = require("./app/api/coreApi.js");
@@ -123,7 +123,7 @@ function loadMiningPoolConfigs() {
 
 	for (var i = 0; i < global.miningPoolsConfigs.length; i++) {
 		for (var x in global.miningPoolsConfigs[i].payout_addresses) {
-			if (global.miningPoolsConfigs[i].payout_addresses.hasOwnProperty(x)) {
+			if (Object.hasOwn(global.miningPoolsConfigs[i].payout_addresses, x)) {
 				global.specialAddresses[x] = {type:"minerPayout", minerInfo:global.miningPoolsConfigs[i].payout_addresses[x]};
 			}
 		}
@@ -179,7 +179,7 @@ app.onStartup = function() {
 				debugLog(`Starting ${global.coinConfig.ticker} RPC Explorer, v${global.appVersion} (code: unknown commit)`);
 
 			} else {
-				global.sourcecodeVersion = log.all[0].hash.substring(0, 40);
+				global.sourcecodeVersion = log.all[0].hash.substring(0, 10);
 				global.sourcecodeDate = log.all[0].date.substring(0, "0000-00-00".length);
 
 				debugLog(`Starting ${global.coinConfig.ticker} RPC Explorer, v${global.appVersion} (commit: '${global.sourcecodeVersion}', date: ${global.sourcecodeDate})`);
@@ -233,13 +233,13 @@ app.continueStartup = function() {
 		password: process.env.DB_PASSWORD,
 		database : process.env.DB_DATABASE
 	}
-	 global.blockchainSync = new BlockchainSync(mongoDBConfig);
-	 global.blockchainSync.syncAddressBalance().then(result => {
-	 	console.log("addresss balance ", result);
-	 }).catch(err => {
-	 	console.log(err);
-	 	utils.logError("32ugegdfsde", err);
-	});
+	// global.blockchainSync = new BlockchainSync(mongoDBConfig);
+	// global.blockchainSync.syncAddressBalance().then(result => {
+	// 	console.log("addresss balance ", result);
+	// }).catch(err => {
+	// 	console.log(err);
+	// 	utils.logError("32ugegdfsde", err);
+	//});
 
 	if(global.coinConfig.masternodeSupported) {
 		utils.scheduleCheckIps();
@@ -446,14 +446,7 @@ if(coins[config.coin].api) {
 	var limiter = rateLimit(apiProperties.limit);
 	var apiRounter = express.Router();
 	app.use(apiProperties.base_uri, limiter);
-	var mongoDBConfig = {
-		address : process.env.DB_URL,
-		port : process.env.DB_PORT,
-		user : process.env.DB_USERNAME,
-		password: process.env.DB_PASSWORD,
-		database : process.env.DB_DATABASE
-	}
-	var restfulAPI = new Restful(apiRounter, apiProperties,mongoDBConfig);
+	var restfulAPI = new Restful(apiRounter, apiProperties);
 	app.use(apiProperties.base_uri, apiRounter);
 }
 

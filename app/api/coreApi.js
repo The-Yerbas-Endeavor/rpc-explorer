@@ -50,7 +50,10 @@ function getBlockchainInfo() {
 	return miscCache.tryCache("getBlockchainInfo", 10000, rpcApi.getBlockchainInfo);
 }
 
-function getBlockCount() {
+function getBlockCount(req) {
+	if(req && req.query.nocache) {
+		return rpcApi.getBlockCount();
+	}
 	return miscCache.tryCache("getblockcount", 10000, rpcApi.getBlockCount);
 }
 
@@ -310,7 +313,7 @@ function getPeerSummary() {
 
 			var versionSummary = [];
 			for (var prop in versionSummaryMap) {
-				if (versionSummaryMap.hasOwnProperty(prop)) {
+				if (Object.hasOwn(versionSummaryMap, prop)) {
 					versionSummary.push([prop, versionSummaryMap[prop]]);
 				}
 			}
@@ -342,7 +345,7 @@ function getPeerSummary() {
 
 			var servicesSummary = [];
 			for (var prop in servicesSummaryMap) {
-				if (servicesSummaryMap.hasOwnProperty(prop)) {
+				if (Object.hasOwn(servicesSummaryMap, prop)) {
 					servicesSummary.push([prop, servicesSummaryMap[prop]]);
 				}
 			}
@@ -718,12 +721,11 @@ function getUtxo(txid, outputIndex) {
 
 		}).then(function(result) {
 			// to avoid cache misses, rpcApi.getUtxo returns "0" instead of null
-			if (result == "0") {
+			if (result === "0") {
 				resolve(null);
 
 				return;
 			}
-
 			resolve(result);
 
 		}).catch(function(err) {

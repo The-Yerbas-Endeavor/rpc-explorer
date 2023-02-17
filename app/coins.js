@@ -2,18 +2,19 @@ var btc = require("./coins/btc.js");
 var ltc = require("./coins/ltc.js");
 var pgn = require("./coins/pgn.js");
 var rtm = require("./coins/rtm.js");
-var yerb = require("./coins/yerb.js");
+var trtm = require("./coins/tyerb.js");
 var pyrk = require("./coins/pyrk.js");
 
 module.exports = {
 	"BTC": btc,
 	"LTC": ltc,
 	"PGN": pgn,
-	"RTM": rtm,
 	"YERB": yerb,
+	"RTM": rtm,
+	"TYERB": tyerb,
 	"PYRK" : pyrk,
 	
-	"coins":["BTC", "LTC", "PGN", "YERB", "RTM"],
+	"coins":["BTC", "LTC", "PGN", "RTM", "YERB", "TYERB", "PYRK"],
 
 	networks : {
 		BTC : {
@@ -46,9 +47,9 @@ module.exports = {
 		    'bitseed.xf2.org'
 		  ]
 		},
-		RTM : {
+		YERB : {
 			bitcoinjs : {
-				messagePrefix: '\x18Raptoreum Signed Message:\n',
+				messagePrefix: '\x18Yerbas Signed Message:\n',
 			  bech32: 'rc',
 			  bip32: {
 			    public: 0x0488b21e,
@@ -58,43 +59,43 @@ module.exports = {
 			  scriptHash: 122,
 			  wif: 128,
 			},
-			name: 'Raptoreum',
-		  alias: 'raptoreum testnet',
+			name: 'Yerbas',
+		  alias: 'yerbas',
 		  pubkeyhash: 60,
 		  privatekey: 128,
 		  scripthash: 122,
 		  xpubkey: 0x0488b21e,
 		  xprivkey: 0x0488ade4,
-		  networkMagic: 0x6251665e,
-		  port: 8333,
+		  networkMagic: 0x79657262,
+		  port: 15419,
 		  dnsSeeds: [
-		    'explorer.raptoreum.com'
+		    'explorer.yerbas.com'
 		  ]
 		},
-		YERB : {
+		Tyerb : {
 			bitcoinjs : {
 				messagePrefix: '\x18Yerbas Signed Message:\n',
-			  bech32: 'yr',
-			  bip32: {
-			    public: 0x0488b21e,
-			    private: 0x0488ade4,
-			  },
-			  pubKeyHash: 140,
-			  scriptHash: 19,
-			  wif: 0x80,
+				bech32: 'rc',
+				bip32: {
+					public: 0x0488b21e,
+					private: 0x0488ade4,
+				  },
+				  pubKeyHash: 60,
+				  scriptHash: 122,
+				  wif: 239,
 			},
-			name: 'yerbas',
-		  alias: 'yerbas mainnet',
-		  pubkeyhash: 140,
-		  privatekey: 128,
-		  scripthash: 122,
-		  xpubkey: 0x0488b21e,
-		  xprivkey: 0x0488ade4,
-		  networkMagic: 0x79657262,
-		  port: 8333,
-		  dnsSeeds: [
-		    'explorer2.yerbas.org'
-		  ]
+			name: 'Yerbas Testnet',
+			alias: 'yerbas testnet',
+			pubkeyhash: 123,
+			privatekey: 239,
+			scripthash: 19,
+			xpubkey: 0x043587cf,
+			xprivkey: 0x04358394,
+			networkMagic: 0x7a796572,
+			port: 21420,
+			dnsSeeds: [
+				'explorer2.yerbas.org'
+			]
 		},
 		PYRK : {
           bitcoinjs : {

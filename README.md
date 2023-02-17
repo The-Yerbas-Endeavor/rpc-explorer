@@ -82,7 +82,7 @@ See `rpc-explorer --help` for the full list of CLI options.
 ## Run via Docker
 
 ```
-cp seed raptoreumd/
+cp seed yerbasd/
 docker-compose up --build --force-recreate
 
 # Support

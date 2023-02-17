@@ -93,6 +93,7 @@ module.exports = {
 		"keypoolrefill",
 		"listaccounts",
 		"listaddressgroupings",
+		"listassets",
 		"listlockunspent",
 		"listreceivedbyaccount",
 		"listreceivedbyaddress",

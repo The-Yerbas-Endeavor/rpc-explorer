@@ -10,13 +10,10 @@ const config = require("./../app/config.js");
 const Decimal = require("decimal.js");
 const moment = require('moment');
 const request = require('request').defaults({ rejectUnauthorized: false });
-const MongoDB = require("../app/database/mongodb.js")
 
 class RestfulRouter {
-	constructor(router, apiProperties,config) {
-		this.apiProperties = apiProperties;
-		this.db = new MongoDB(config);
-		var self = this;
+	constructor(router, apiProperties) {
+		let self = this;
 		apiProperties.api_map.forEach(api => {
 			router.get(`/${api.uri}`, (req, res, next) => {
 				var method = api.method ? api.method : api.name
@@ -26,7 +23,8 @@ class RestfulRouter {
 						res.send(JSON.stringify(result, null, 4));
 					} else {
 						res.set('Content-Type', 'text/plain');
-						res.send(result.toString());
+						console.log(result);
+						res.send(self.checkAndParseString(result));
 					}
 					next();
 				}).catch(e => {
@@ -36,7 +34,7 @@ class RestfulRouter {
 				});
 			});
 		});
-		var pageRender = new PageRender(router, "/", "api");
+		let pageRender = new PageRender(router, "/", "api");
 		pageRender.prepareRender(this.infoPageContent.bind(this));
 	}
 
@@ -151,26 +149,25 @@ class RestfulRouter {
 			if(query.start < 0) {
 				query.start = 0;
 			}
-			this.db.queryRichList(query.start,query.limit).then(walletRecords => {
-				var records = [];
-				var idx = 0;
-				for(var a in walletRecords){
-					idx++;
-					records.push({
-						//address', 'label', 'balance
-						Rank:a,
-						Address:walletRecords[a].address,
-						Label:walletRecords[a].label,
-						Balance:walletRecords[a].balance / coinConfig.baseCurrencyUnit.multiplier
-					});
+			request(`${process.env.CHAIN_API_URL}/${global.coinConfig.ticker}/richlist?page=${query.start/query.limit}&size=${query.limit}&sort=balance,desc`, { json: true }, (err, res, body) => {
+			  if (err) { return reject(err); }
+				let wallets = body.content;
+				var walletRecords = [];
+				for(let i in wallets) {
+					walletRecords.push({
+						Rank :  query.start + Number(i) + 1,
+						Address : wallets[i].address,
+						Label : wallets[i].label ? wallets[i].label : "",
+						Balance : Number(wallets[i].balance).toLocaleString()
+					})
 				}
 				resolve({
-					data : records,
+					data : walletRecords,
 					draw : query.draw,
-					recordsTotal : query.limit - query.start,
-					recordsFiltered : query.limit -query.start
+					recordsTotal : body.totalElements,
+					recordsFiltered : body.totalElements
 				});
-			}).catch(reject);
+			});
 		});
 	}
 
@@ -573,7 +570,7 @@ class RestfulRouter {
 
 	checkAndParseString(value) {
 		if(value) {
-			value = (typeof value) === "string" ? value.trim() : value.toString();
+			value = (typeof value) === "string" ? value.trim() : JSON.stringify(value);
 			return value !== "" ? value : null;
 		}
 		return null;

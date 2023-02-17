@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-mkdir -p "$HOME/.raptoreumcore"
+mkdir -p "$HOME/.yerbascore"
 
-cp /app/raptoreum.conf "$HOME/.raptoreumcore/raptoreum.conf"
+cp /app/yerbas.conf "$HOME/.yerbascore/yerbas.conf"
 
-exec raptoreumd -printtoconsole
+exec yerbasd -printtoconsole
