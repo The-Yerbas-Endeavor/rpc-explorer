@@ -2,7 +2,8 @@ var btc = require("./coins/btc.js");
 var ltc = require("./coins/ltc.js");
 var pgn = require("./coins/pgn.js");
 var rtm = require("./coins/rtm.js");
-var trtm = require("./coins/tyerb.js");
+var yerb = require("./coins/yerb.js");
+var tyerb = require("./coins/tyerb.js");
 var pyrk = require("./coins/pyrk.js");
 
 module.exports = {

@@ -2,18 +2,18 @@ var Decimal = require("decimal.js");
 Decimal8 = Decimal.clone({ precision:8, rounding:8 });
 var MasternodeBase = require("./masternodeBase.js");
 
-var Yerbas = new MasternodeBase("Yerbas Testnet", "TRTM", "yerbas testnet", ["trap", "traposhi"], "smartnode");
+var Yerbas = new MasternodeBase("Yerbas Testnet", "Tyerb", "yerbas testnet", ["trap", "traposhi"], "smartnode");
 Yerbas.addProperties({
-	logoUrl:"/img/logo/rtm.svg",
+	logoUrl:"/img/logo/yerb.svg",
 	siteTitle:"Yerbas Test Explorer",
-	siteDescriptionHtml:"<b>RTM Explorer</b> is <a href='https://github.com/The-Yerbas-Endeavor/rpc-explorer). If you run your own [Yerbas Full Node](https://github.com/Yerbas/Yerbas/releases), **RTM Explorer** can easily run alongside it, communicating via RPC calls. See the project [ReadMe](https://github.com/Yerbas/RTM-rpc-explorer) for a list of features and instructions for running.",
+	siteDescriptionHtml:"<b>yerb Explorer</b> is <a href='https://github.com/The-Yerbas-Endeavor/rpc-explorer). If you run your own [Yerbas Full Node](https://github.com/Yerbas/Yerbas/releases), **yerb Explorer** can easily run alongside it, communicating via RPC calls. See the project [ReadMe](https://github.com/Yerbas/yerb-rpc-explorer) for a list of features and instructions for running.",
 	nodeTitle:"Yerbas Full Node",
 	nodeUrl:"https://github.com/The-Yerbas-Endeavor/yerbas/releases",
 	demoSiteUrl: "https://btc.chaintools.io",
 	masternodeName: "Smartnode",
 	isFixedCollateral : false,
 	miningPoolsConfigUrls:[
-		"https://raw.githubusercontent.com/RTMcom/Blockchain-Known-Pools/master/pools.json",
+		"https://raw.githubusercontent.com/yerbcom/Blockchain-Known-Pools/master/pools.json",
 		"https://raw.githubusercontent.com/blockchain/Blockchain-Known-Pools/master/pools.json"
 	],
 	targetBlockTimeSeconds: 60,
@@ -68,8 +68,8 @@ Yerbas.addProperties({
 			date: "2018-03-21",
 			blockHeight: 0,
 			blockHash: "000000f049bef9fec0179131874c54c76c0ff59f695db30a4f0da52072c99492",
-			summary: "The Raptoreum Genesis Block.",
-			alertBodyHtml: "This is the first block in the Raptoreum blockchain, known as the 'Genesis Block'. This block was mined by Raptoreum's creator Luke. You can read more about <a href='https://en.bitcoin.it/wiki/Genesis_block'>the genesis block</a>.",
+			summary: "The Yerbas Genesis Block.",
+			alertBodyHtml: "This is the first block in the Yerbas blockchain, known as the 'Genesis Block'. This block was mined by Yerbas's creator Luke. You can read more about <a href='https://en.bitcoin.it/wiki/Genesis_block'>the genesis block</a>.",
 			referenceUrl: "https://en.bitcoin.it/wiki/Genesis_block"
 		},
 		{
@@ -84,47 +84,53 @@ Yerbas.addProperties({
 	],
 
 	relatedSites : [
-		{name: "Official Website", url:"https://Raptoreum.com/", imgUrl:"/img/logo/rtm.svg"},
-		{name: "Discord", url:"https://discord.gg/2T8xG7e", imgUrl:"/img/logo/discord.svg"},
-		{name: "Twitter", url:"https://twitter.com/Raptoreum", imgUrl:"/img/logo/twitter.svg"},
-		{name: "Github", url:"https://github.com/Raptor3um/Raptoreum", imgUrl:"/img/logo/github.png"}
+		{name: "Official Website", url:"https://yerbas.org/", imgUrl:"/img/logo/yerb.svg"},
+		{name: "Discord", url:"https://discord.gg/XGEp2cKSKF", imgUrl:"/img/logo/discord.svg"},
+		{name: "Twitter", url:"https://twitter.com/Yerbas_Endeavor", imgUrl:"/img/logo/twitter.svg"},
+		{name: "Github", url:"https://github.com/The-Yerbas-Endeavor/yerbas", imgUrl:"/img/logo/github.png"}
 	],
 
 	blockRewardFunction:function(blockHeight) {
 		blockHeight = Number(blockHeight);
-		var nSubsidy = 5000; // (declaring the reward variable and its original/default amount)
+		var nSubsidy = 100; // (declaring the reward variable and its original/default amount)
 		var owlings = 21262; // amount of blocks between 2 owlings
 		var multiplier; // integer number of owlings
 		var tempHeight; // number of blocks since last anchor
-		if (blockHeight < 720) {
-			nSubsidy = 4;
-		} else if ( (blockHeight > 553531) && (blockHeight < 2105657) ){
-			tempHeight = blockHeight - 553532;
-			multiplier = tempHeight / owlings;
-			nSubsidy -= (multiplier*10 +10);
-		} else if ( (blockHeight > 2105657) && (blockHeight < 5273695) ) {
-			tempHeight = blockHeight - 2105658;
-			multiplier = tempHeight / owlings;
-			nSubsidy -= (multiplier*20 + 750);
-		} else if ( (blockHeight > 5273695) && (blockHeight < 7378633) ) {
-			tempHeight = blockHeight - 5273696;
-			multiplier = tempHeight / owlings;
-			nSubsidy -= (multiplier*10 + 3720);
-		} else if ( (blockHeight > 7378633) && (blockHeight < 8399209) ){
-			tempHeight = blockHeight - 7378634;
-			multiplier = tempHeight / owlings;
-			nSubsidy -= (multiplier * 5 + 4705);
-		} else if ( (blockHeight > 8399209) && (blockHeight < 14735285) ){
-			nSubsidy = 55;
-		} else if ( (blockHeight > 14735285) && (blockHeight < 15798385) ){
-		   tempHeight = blockHeight - 14735286;
-		   multiplier = tempHeight / owlings;
-		   nSubsidy -= (multiplier + 4946);
-		} else if ( (blockHeight > 15798385) && (blockHeight < 25844304) ){
-			nSubsidy = 5;
-		} else if (blockHeight > 125844304) {
-			nSubsidy = 0.001;
-		}
+		if (blockHeight < 420) {
+        		nSubsidy = 4.20; 
+    		} else if ((blockHeight > 1000000) && (blockHeight < 2000000)) {
+        		nSubsidy = 80; 
+    		} else if ((blockHeight > 2000000) && (blockHeight < 3000000)) {
+       		 nSubsidy = 70;
+    		} else if ((blockHeight > 3000000) && (blockHeight < 4000000)) {
+        		nSubsidy = 50;
+    		} else if ((blockHeight > 4000000) && (blockHeight < 5000000)) {
+        		nSubsidy = 40;     
+    		} else if ((blockHeight > 5000000) && (blockHeight < 6000000)) {
+        		nSubsidy = 20;      
+    		} else if ((blockHeight > 6000000) && (blockHeight < 7000000)) {
+        		nSubsidy = 10;     
+    		} else if ((blockHeight > 7000000) && (blockHeight < 8000000)) {
+        		nSubsidy = 9;  
+    		} else if ((blockHeight > 8000000) && (blockHeight < 9000000)) {
+        		nSubsidy = 8;      
+    		} else if ((blockHeight > 9000000) && (blockHeight < 10000000)) {
+        		nSubsidy = 7;     
+    		} else if ((blockHeight > 10000000) && (blockHeight < 11000000)) {
+        		nSubsidy = 6;    
+    		} else if ((blockHeight > 11000000) && (blockHeight < 12000000)) {
+        		nSubsidy = 5;     
+    		} else if ((blockHeight > 12000000) && (blockHeight < 13000000)) {
+        		nSubsidy = 4.20;  
+    		} else if ((blockHeight > 13000000) && (blockHeight < 14000000)) {
+        		nSubsidy = 3;      
+    		} else if ((blockHeight > 14000000) && (blockHeight < 15000000)) {
+        		nSubsidy = 2;     
+    		} else if ((blockHeight > 15000000) && (blockHeight < 16000000)) {
+        		nSubsidy = 1; 
+    		} else if (blockHeight > 16000000) {
+        		nSubsidy = .420;
+    		}
 		return nSubsidy;
 	},
 
@@ -134,12 +140,12 @@ Yerbas.addProperties({
 
 	masternodeCollateral : function(blockHeight) {
 		var collaterals = new Map();
-		collaterals.set(88720, 600000);
-		collaterals.set(132720, 800000);
-		collaterals.set(176720, 1000000);
-		collaterals.set(220720, 1250000);
-		collaterals.set(264720,1500000);
-		collaterals.set(Number.MAX_SAFE_INTEGER, 1800000);
+		collaterals.set(69420, 2000);
+		collaterals.set(100420, 16000);
+		collaterals.set(200420, 22000);
+		collaterals.set(302420, 28000);
+		collaterals.set(420420, 340000);
+		collaterals.set(Number.MAX_SAFE_INTEGER, 42000);
 		for(const [collateralHeight, collateralValue] of collaterals.entries()) {
 			if(Number(collateralHeight) >= Number(blockHeight)) {
 				return collateralValue;
@@ -149,4 +155,4 @@ Yerbas.addProperties({
 	}
 });
 
-module.exports = Raptoreum.properties;
+module.exports = Yerbas.properties;
