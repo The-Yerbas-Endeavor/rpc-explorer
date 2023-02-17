@@ -114,12 +114,12 @@ block content
 											div(class="summary-split-table-label") Script Public Key
 											div(class="summary-split-table-content monospace") #{result.validateaddress.scriptPubKey}
 
-									if (Object.hasOwn(addressObj, "version"))
+									if (addressObj.hasOwnProperty("version"))
 										div(class="row")
 											div(class="summary-split-table-label") Version
 											div(class="summary-split-table-content monospace") #{addressObj.version}
 
-									if (Object.hasOwn(result.validateaddress, "witness_version"))
+									if (result.validateaddress.hasOwnProperty("witness_version"))
 										div(class="row")
 											div(class="summary-split-table-label") Witness Version
 											div(class="summary-split-table-content monospace") #{result.validateaddress.witness_version}

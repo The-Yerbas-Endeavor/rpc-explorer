@@ -28,6 +28,10 @@
         "name" : "zergpool",
         "link" : "https://zergpool.com/"
       },
+      "yWX9ynayG6iCXKrbywjLsJA2yo4dBiDsM6" : {
+        "name" : "miningpoolx",
+        "link" : "https://miningpoolx.com/"
+      },
       "yPwp33aK9EjzrQXLycYDiBj3smFZBT2K1Y" : {
 	 "name" : "Rplant",
 	 "link" : "https://pool.rplant.xyz/"
@@ -58,6 +62,10 @@
         "miningpool2u": {
       "name": "miningpool2u",
       "link": "https://miningpool2u.com/#yerb"
+    },
+        "miningpoolx": {
+      "name": "miningpoolx",
+      "link": "https://miningpoolx.com/"
     },
         "zergpool": {
       "name": "zergpool",
