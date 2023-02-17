@@ -18,10 +18,10 @@ Yerbas.addProperties({
 	],
 	targetBlockTimeSeconds: 60,
 	currencyUnitsByName:{
-		"TRTM": Yerbas.properties.currencyUnits[0],
-		"mTRTM": Yerbas.properties.currencyUnits[1],
-		"tpits": Raptoreum.properties.currencyUnits[2],
-		"trap": Raptoreum.properties.currencyUnits[3]
+		"TYERB": Yerbas.properties.currencyUnits[0],
+		"mTYERB": Yerbas.properties.currencyUnits[1],
+		"tYERB": Yerbas.properties.currencyUnits[2],
+		"tweeds": Yerbas.properties.currencyUnits[3]
 	},
 	//baseCurrencyUnit: currencyUnits[3],
 	//defaultCurrencyUnit:currencyUnits[0],
