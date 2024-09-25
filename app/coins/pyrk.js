@@ -9,7 +9,7 @@ Pyrk.addProperties({
 	siteDescriptionHtml:"<b>PYRK Explorer</b> is <a href='https://github.com/npq7721/rpc-explorer). If you run your own [Pyrk Full Node](https://github.com/pyrkcommunity/pyrk/releases), **PYRK Explorer** can easily run alongside it, communicating via RPC calls. See the project [ReadMe](https://github.com/Pyrk/PYRK-rpc-explorer) for a list of features and instructions for running.",
 	nodeTitle:"Pyrk Full Node",
 	nodeUrl:"https://github.com/pyrkcommunity/pyrk/releases",
-	demoSiteUrl: "https://explorer1.yerbas.org",
+	demoSiteUrl: "https://explorer.raptoreum.com",
 	masternodeName: "Masternode",
 	miningPoolsConfigUrls:[
 		"https://raw.githubusercontent.com/blockchain/Blockchain-Known-Pools/master/pools.json"

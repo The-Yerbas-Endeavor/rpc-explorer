@@ -93,7 +93,6 @@ module.exports = {
 		"keypoolrefill",
 		"listaccounts",
 		"listaddressgroupings",
-		"listassets",
 		"listlockunspent",
 		"listreceivedbyaccount",
 		"listreceivedbyaddress",
@@ -185,8 +184,8 @@ module.exports = {
 				"LTC":"https://btc.chaintools.io"
 			},
 
-			"BTC":{address:"bc1qwlut2vdy4ak2wu7l4kagcf923merxvmwsjhd33"},
-			"LTC":{address:"ltc1qkhme8ux6fssejgz350e7a2n9ngszjjpe6zpz3y"}
+			"BTC":{address:"3Jym9QJLXQyjSSGKS1LCD9LCroPqCGo3Lq"},
+			"LTC":{address:"LeBistdbcpTDbztr4GU9P29WZzGqJVmnjT"}
 		}
 		/*btcpayserver:{
 			host:"https://btcpay.chaintools.io",

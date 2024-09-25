@@ -1,12 +1,12 @@
-let Decimal = require("decimal.js");
+var Decimal = require("decimal.js");
 Decimal8 = Decimal.clone({ precision:8, rounding:8 });
-let MasternodeBase = require("./masternodeBase.js");
+var MasternodeBase = require("./masternodeBase.js");
 
-let Raptoreum = new MasternodeBase("Raptoreum", "RTM", "raptoreum", ["sat", "satoshi"], "smartnode");
+var Raptoreum = new MasternodeBase("Raptoreum Testnet", "tRTM", "raptoreum testnet", ["trap", "traposhi"], "smartnode");
 Raptoreum.addProperties({
 	hasassets: true,
 	logoUrl:"/img/logo/rtm.svg",
-	siteTitle:"Raptoreum Explorer",
+	siteTitle:"Raptoreum Test Explorer",
 	siteDescriptionHtml:"<b>RTM Explorer</b> is <a href='https://github.com/Raptoreum/RTM-rpc-explorer). If you run your own [Raptoreum Full Node](https://github.com/Raptoreum/Raptoreum/releases), **RTM Explorer** can easily run alongside it, communicating via RPC calls. See the project [ReadMe](https://github.com/Raptoreum/RTM-rpc-explorer) for a list of features and instructions for running.",
 	nodeTitle:"Raptoreum Full Node",
 	nodeUrl:"https://github.com/Raptoreum/Raptoreum/releases",
@@ -19,10 +19,10 @@ Raptoreum.addProperties({
 	],
 	targetBlockTimeSeconds: 60,
 	currencyUnitsByName:{
-		"RTM": Raptoreum.properties.currencyUnits[0],
-		"mRTM": Raptoreum.properties.currencyUnits[1],
-		"pits": Raptoreum.properties.currencyUnits[2],
-		"rap": Raptoreum.properties.currencyUnits[3]
+		"tRTM": Raptoreum.properties.currencyUnits[0],
+		"mTRTM": Raptoreum.properties.currencyUnits[1],
+		"tpits": Raptoreum.properties.currencyUnits[2],
+		"trap": Raptoreum.properties.currencyUnits[3]
 	},
 	//baseCurrencyUnit: currencyUnits[3],
 	//defaultCurrencyUnit:currencyUnits[0],
@@ -93,34 +93,33 @@ Raptoreum.addProperties({
 
 	blockRewardFunction:function(blockHeight) {
 		blockHeight = Number(blockHeight);
-		blockHeight -= 1;
-		let nSubsidy = 5000; // (declaring the reward variable and its original/default amount)
-		let owlings = 21262; // amount of blocks between 2 owlings
-		let multiplier; // integer number of owlings
-		let tempHeight; // number of blocks since last anchor
+		var nSubsidy = 5000; // (declaring the reward variable and its original/default amount)
+		var owlings = 21262; // amount of blocks between 2 owlings
+		var multiplier; // integer number of owlings
+		var tempHeight; // number of blocks since last anchor
 		if (blockHeight < 720) {
 			nSubsidy = 4;
 		} else if ( (blockHeight > 553531) && (blockHeight < 2105657) ){
 			tempHeight = blockHeight - 553532;
-			multiplier = Math.floor(tempHeight / owlings);
+			multiplier = tempHeight / owlings;
 			nSubsidy -= (multiplier*10 +10);
 		} else if ( (blockHeight > 2105657) && (blockHeight < 5273695) ) {
 			tempHeight = blockHeight - 2105658;
-			multiplier = Math.floor((tempHeight / owlings));
+			multiplier = tempHeight / owlings;
 			nSubsidy -= (multiplier*20 + 750);
 		} else if ( (blockHeight > 5273695) && (blockHeight < 7378633) ) {
 			tempHeight = blockHeight - 5273696;
-			multiplier = Math.floor(tempHeight / owlings) ;
+			multiplier = tempHeight / owlings;
 			nSubsidy -= (multiplier*10 + 3720);
 		} else if ( (blockHeight > 7378633) && (blockHeight < 8399209) ){
 			tempHeight = blockHeight - 7378634;
-			multiplier = Math.floor((tempHeight / owlings));
+			multiplier = tempHeight / owlings;
 			nSubsidy -= (multiplier * 5 + 4705);
 		} else if ( (blockHeight > 8399209) && (blockHeight < 14735285) ){
 			nSubsidy = 55;
 		} else if ( (blockHeight > 14735285) && (blockHeight < 15798385) ){
 		   tempHeight = blockHeight - 14735286;
-		   multiplier = Math.floor(tempHeight / owlings);
+		   multiplier = tempHeight / owlings;
 		   nSubsidy -= (multiplier + 4946);
 		} else if ( (blockHeight > 15798385) && (blockHeight < 25844304) ){
 			nSubsidy = 5;

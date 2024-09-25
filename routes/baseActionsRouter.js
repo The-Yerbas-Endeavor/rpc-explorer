@@ -15,6 +15,7 @@ var Decimal = require("decimal.js");
 var marked = require("marked");
 
 var utils = require('./../app/utils.js');
+var pingUtils = require('./../app/pingUtils.js');
 var coins = require("./../app/coins.js");
 var config = require("./../app/config.js");
 var coreApi = require("./../app/api/coreApi.js");
@@ -129,7 +130,7 @@ router.get("/peers", function(req, res, next) {
 		}
 
 		if (peerIps.length > 0) {
-			utils.geoLocateIpAddresses(peerIps).then(function(results) {
+			pingUtils.geoLocateIpAddresses(peerIps).then(function(results) {
 				res.locals.peerIpSummary = results;
 
 				res.render("peers");
@@ -209,63 +210,6 @@ router.get("/changeSetting", function(req, res, next) {
 	}
 
 	res.redirect(req.headers.referer);
-});
-
-router.get("/blocks", function(req, res, next) {
-	var limit = config.site.browseBlocksPageSize;
-	var offset = 0;
-	var sort = "desc";
-
-	if (req.query.limit) {
-		limit = parseInt(req.query.limit);
-	}
-
-	if (req.query.offset) {
-		offset = parseInt(req.query.offset);
-	}
-
-	if (req.query.sort) {
-		sort = req.query.sort;
-	}
-
-	res.locals.limit = limit;
-	res.locals.offset = offset;
-	res.locals.sort = sort;
-	res.locals.paginationBaseUrl = "/blocks";
-
-	coreApi.getBlockchainInfo().then(function(getblockchaininfo) {
-		res.locals.blockCount = getblockchaininfo.blocks;
-		res.locals.blockOffset = offset;
-
-		var blockHeights = [];
-		if (sort == "desc") {
-			for (var i = (getblockchaininfo.blocks - offset); i > (getblockchaininfo.blocks - offset - limit); i--) {
-				if (i > 0) {
-					blockHeights.push(i);
-				}
-			}
-		} else {
-			for (var i = offset; i < (offset + limit); i++) {
-				if (i > 0) {
-					blockHeights.push(i);
-				}
-			}
-		}
-
-		coreApi.getBlocksByHeight(blockHeights).then(function(blocks) {
-			res.locals.blocks = blocks;
-
-			res.render("blocks");
-
-			next();
-		});
-	}).catch(function(err) {
-		res.locals.userMessage = "Error: " + err;
-
-		res.render("blocks");
-
-		next();
-	});
 });
 
 router.get("/search", function(req, res, next) {
@@ -407,8 +351,6 @@ router.get("/block-height/:blockHeight", function(req, res, next) {
 		coreApi.getBlockByHashWithTransactions(result.hash, limit, offset).then(function(result) {
 			res.locals.result.getblock = result.getblock;
 			res.locals.result.transactions = result.transactions;
-			res.locals.result.txInputsByTransaction = result.txInputsByTransaction;
-
 			res.render("block");
 
 			next();
@@ -448,7 +390,6 @@ router.get("/block/:blockHash", function(req, res, next) {
 	coreApi.getBlockByHashWithTransactions(blockHash, limit, offset).then(function(result) {
 		res.locals.result.getblock = result.getblock;
 		res.locals.result.transactions = result.transactions;
-		res.locals.result.txInputsByTransaction = result.txInputsByTransaction;
 
 		res.render("block");
 
@@ -464,9 +405,9 @@ router.get("/block/:blockHash", function(req, res, next) {
 });
 
 router.get("/tx/:transactionId", function(req, res, next) {
-	var txid = req.params.transactionId;
+	let txid = req.params.transactionId;
 
-	var output = -1;
+	let output = -1;
 	if (req.query.output) {
 		output = parseInt(req.query.output);
 	}
@@ -479,7 +420,7 @@ router.get("/tx/:transactionId", function(req, res, next) {
 	coreApi.getRawTransaction({query : {txid : txid}}).then(function(rawTxResult) {
 		res.locals.result.getrawtransaction = rawTxResult;
 
-		var promises = [];
+		let promises = [];
 
 		promises.push(new Promise(function(resolve, reject) {
 			coreApi.getTxUtxos(rawTxResult).then(function(utxos) {
@@ -506,26 +447,36 @@ router.get("/tx/:transactionId", function(req, res, next) {
 				});
 			}));
 		}
-
+		rawTxResult.vout.forEach(utils.findAddressVout);
 		promises.push(new Promise(function(resolve, reject) {
 			coreApi.getBlockByHash(rawTxResult.blockhash).then(result3 => {
 				res.locals.result.getblock = result3;
 
-				let txids = [];
+				let txidMap = {};
 				for (let i = 0; i < rawTxResult.vin.length; i++) {
-					if (!rawTxResult.vin[i].coinbase) {
-						txids.push(rawTxResult.vin[i].txid);
+					let vin = rawTxResult.vin[i];
+					if (!vin.coinbase && !vin.address) {
+						txidMap[vin.txid] = vin;
 					}
 				}
-
-				coreApi.getRawTransactions(txids).then(function(txInputs) {
-					res.locals.result.txInputs = txInputs;
-
+				coreApi.getRawTransactions(Object.keys(txidMap)).then(function(txInputs) {
+					for(let txInput of txInputs) {
+						let vin = txidMap[txInput.txid];
+						let inputVout = txInput.vout[vin.vout];
+						utils.extractedVinVout(inputVout, vin);
+					}
 					resolve();
 				}).catch(err => {
 					res.locals.pageErrors.push(utils.logError("0q83hreuwgd", err));
 					reject(err);
 				});
+				// coreApi.getRawTransactions(txidMap).then(function(txInputs) {
+				// 	res.locals.result.txInputs = txInputs;
+				// 	resolve();
+				// }).catch(err => {
+				// 	res.locals.pageErrors.push(utils.logError("0q83hreuwgd", err));
+				// 	reject(err);
+				// });
 			}).catch(err => {
 				res.locals.pageErrors.push(utils.logError("0q83hreuwgd", err));
 				reject(err);
@@ -557,8 +508,8 @@ router.get("/tx/:transactionId", function(req, res, next) {
 });
 
 routing("/blocktableview/:blockTotal", "get", "renderBlocksTableView", null, true);
-routing("/addressview/:address", "get", "renderAddressView", [coins[config.coin].assetSupported],true);
-routing("/address/:address", "get", "renderAddressPage", [coins[config.coin].assetSupported],true);
+routing("/addressview/:address", "get", "renderAddressView", [coins[config.coin].assetSupported, coins[config.coin].hasassets],true);
+routing("/address/:address", "get", "renderAddressPage", [coins[config.coin].assetSupported, coins[config.coin].hasassets],true);
 
 router.get("/rpc-terminal", function(req, res, next) {
 	if (!config.demoSite && !req.authenticated) {
@@ -853,7 +804,7 @@ router.get("/about", function(req, res, next) {
 });
 
 router.get("/changelog", function(req, res, next) {
-	res.locals.changelogHtml = marked(global.changelogMarkdown);
+	res.locals.changelogHtml = marked.parse(global.changelogMarkdown);
 
 	res.render("changelog");
 

@@ -5,6 +5,7 @@ const debugLog = debug("btcexp:rpc");
 const async = require("async");
 
 const utils = require("../utils.js");
+const pingUtils = require("../pingUtils.js");
 const config = require("../config.js");
 const coins = require("../coins.js");
 
@@ -30,15 +31,26 @@ const rpcQueue = async.queue(function(task, callback) {
 
 function getBlockchainInfo() {
 	return new Promise((resolve, reject) => {
-		getRpcData("getblockchaininfo").then(result => {
+		getRpcData("getblockchaininfo").then(async result => {
 			result.difficultiesData = [];
-			if(result.difficulty) {
+			let coin = coins[config.coin];
+			if(coin.type === "hydrid") {
+				try {
+					let diffs = await getRpcData("getdifficulty");
+					result.difficultiesData.push(utils.getDifficultyData("POW Difficulty", diffs["proof-of-work"]));
+					result.difficultiesData.push(utils.getDifficultyData("POS Difficulty", diffs["proof-of-stake"]));
+
+				} catch (error) {
+					reject(error);
+				}
+			} else if(result.difficulty) {
 				result.difficultiesData.push(utils.getDifficultyData("Difficulty", result.difficulty));
 			} else if(result.difficulties) {
 				for(var diffName in result.difficulties) {
 					result.difficultiesData.push(utils.getDifficultyData(diffName + " diff",  result.difficulties[diffName]));
 				}
 			}
+
 			resolve(result);
 		}).catch(reject);
 	});
@@ -163,11 +175,22 @@ function broadcast(req) {
 
 function getAddressDeltas(address, scriptPubkey, sort, limit, offset, start, numBlock, assetName = coins[config.coin].ticker) {
 	var assetSupported = coins[config.coin].assetSupported ? true : false;
+	var hasassets = coins[config.coin].hasassets ? true : false;
 	var promise;
-	if(assetSupported) {
-		promise = getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], assetName : assetName, start : start, end : start + numBlock - 1}]});
+	if(assetSupported) {	
+		promise = getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], asset : assetName, start : start, end : start + numBlock - 1}]});
 	} else {
-		promise = getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], start : start, end : start + numBlock - 1}]});
+		if(hasassets) {
+			var tmpasset = "*";
+			if (assetName)
+				tmpasset = assetName
+			if (tmpasset == coins[config.coin].ticker)
+				promise = getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], start : start, end : start + numBlock - 1}]});
+			else
+				promise = getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], asset : tmpasset, start : start, end : start + numBlock - 1}]});
+		} else {
+			promise = getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], start : start, end : start + numBlock - 1}]});
+		}
 	}
 	return promise;
 	/*return new Promise(function(resolve, reject) {
@@ -213,16 +236,27 @@ function getAddressDetails(address, scriptPubkey, sort, limit, offset, assetName
 		var txidData = null;
 		var balanceData = null;
 		var assetSupported = coins[config.coin].assetSupported ? true : false;
+		var hasassets = coins[config.coin].hasassets ? true : false;
 		// getBlockCount().then(currentHeight => {
 		// 	promises.push({method : "getaddresstxids", parameters: [{adddresses : [address]}]}));
 		// }).catch(reject);
 		var promises = [];
 		if(assetSupported) {
 			promises.push(getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], assetName : assetName}]}));
-			promises.push(getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address]},true]}));
+			promises.push(getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address],asset:"*"},true]}));
 		} else {
-			promises.push(getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address]}]}));
-			promises.push(getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address]}]}));
+			if(hasassets) {
+				if (assetName == coins[config.coin].ticker) {
+					promises.push(getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address]}]}));
+					promises.push(getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address]}]}));
+				} else {
+					promises.push(getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address], assetName : assetName}]}));
+					promises.push(getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address],asset:assetName},true]}));
+				}	
+			} else {
+				promises.push(getRpcDataWithParams({method : "getaddressdeltas", parameters: [{addresses : [address]}]}));
+				promises.push(getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address]}]}));
+			}
 		}
 		Promise.all(promises).then(function(results) {
 			txidData = results[0];
@@ -252,7 +286,19 @@ function getAddressDetails(address, scriptPubkey, sort, limit, offset, assetName
 					}
 				}
 			} else {
-				addressDetails.balanceSat = balanceData.balance;
+				if(hasassets) {
+					addressDetails.assets = {};
+					for(var bIndex in balanceData) {
+						var bal = balanceData[bIndex];
+						if(bal.asset === coins[config.coin].ticker) {
+							addressDetails.balanceSat = bal.balance;
+						} else {
+							addressDetails.assets[bal.asset] = bal.balance;
+						}
+					}
+				} else {
+					addressDetails.balanceSat = balanceData.balance;
+				};
 			}
 			resolve({addressDetails : addressDetails, errors : null});
  		}).catch(reject);
@@ -260,11 +306,10 @@ function getAddressDetails(address, scriptPubkey, sort, limit, offset, assetName
 }
 
 function getAddressBalance(address, scriptPubkey) {
-	if (coins[config.coin].assetSupported) {
-		return getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address]},true]});
+	if (coins[config.coin].assetSupported || coins[config.coin].hasassets) {
+		return getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address], asset:"*"},true]});
 	} else {
 		return getRpcDataWithParams({method : "getaddressbalance", parameters: [{addresses : [address]}]});
-
 	}
 }
 
@@ -341,7 +386,7 @@ function getRawMempoolEntry(txid) {
 	});
 }
 
-function getChainTxStats(blockCount) {
+function getChainTxStats (blockCount) {
 	return getRpcDataWithParams({method:"getchaintxstats", parameters:[blockCount]});
 }
 
@@ -687,15 +732,15 @@ function getMasternodeReachableCount() {
 	var self = this;
 	return new Promise((resolve, reject) => {
 		masternode("list", global.coinConfig.masternodeCommand).then(async mnList => {
-			utils.clearIpList();
+			pingUtils.clearIpList();
 			for(var tx in mnList) {
 				var mn = mnList[tx];
 				if(mn.status === "ENABLED") {
 					var ipPort = mn.address.split(':');
-					var isReachable = await utils.isIpPortReachableFromCache(ipPort[0], ipPort[1]);
+					var isReachable = await pingUtils.isIpPortReachableFromCache(ipPort[0], ipPort[1]);
 				}
 			}
-			var checkResult = await utils.checkIpsAsync();
+			var checkResult = await pingUtils.checkIpsAsync();
 			resolve(checkResult);
 		}).catch(reject);
 	});
@@ -704,7 +749,6 @@ function getMasternodeReachableCount() {
 function getOutputAddressBalance(fromHeight, endHeight) {
 	return new Promise((resolve, reject) => {
 		getOutputAddressForBlocks(fromHeight, endHeight).then(async addresses => {
-			console.log("found %s addresses", Object.keys(addresses).length);
 			var addressBalanceRequests = [];
 			var wallets = [];
 			var walletIndex = 0;
@@ -942,7 +986,7 @@ module.exports = {
 	getRpcMethodHelp: getRpcMethodHelp,
 	getAddress: getAddress,
 	getPeerInfo: getPeerInfo,
-	getChainTxStats: getChainTxStats,
+	getChainTxStats : getChainTxStats,
 	getBlockCount : getBlockCount,
 	getBlock : getBlock,
 	getSupply : getSupply,

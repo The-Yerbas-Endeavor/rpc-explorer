@@ -1,24 +1,18 @@
-var debug = require("debug");
+let debug = require("debug");
 
-var debugLog = debug("btcexp:utils");
-var debugErrorLog = debug("btcexp:error");
+let debugLog = debug("btcexp:utils");
+let debugErrorLog = debug("btcexp:error");
 
-var Decimal = require("decimal.js");
-var request = require("request");
-var qrcode = require("qrcode");
+let Decimal = require("decimal.js");
+let request = require("request");
+let qrcode = require("qrcode");
 
-var config = require("./config.js");
-var coins = require("./coins.js");
-var coinConfig = coins[config.coin];
-var redisCache = require("./redisCache.js");
-var Cache = require("./cache.js");
-const schedule = require("node-schedule");
-const isPortReachable = require('is-port-reachable');
-var reachableCache = new Cache(process.env.MAX_REACHABLE_CACHE ? process.env.MAX_REACHABLE_CACHE : 5000);
-var ipList = {}
+let config = require("./config.js");
+let coins = require("./coins.js");
+const bitcoinjs = require("bitcoinjs-lib");
+let coinConfig = coins[config.coin];
 
-
-var exponentScales = [
+let exponentScales = [
 	{val:1000000000000000000000000000000000, name:"?", abbreviation:"V", exponent:"33"},
 	{val:1000000000000000000000000000000, name:"?", abbreviation:"W", exponent:"30"},
 	{val:1000000000000000000000000000, name:"?", abbreviation:"X", exponent:"27"},
@@ -29,45 +23,16 @@ var exponentScales = [
 	{val:1000000000000, name:"tera", abbreviation:"T", exponent:"12"},
 	{val:1000000000, name:"giga", abbreviation:"G", exponent:"9"},
 	{val:1000000, name:"mega", abbreviation:"M", exponent:"6"},
-	{val:1000, name:"kilo", abbreviation:"K", exponent:"3"}
+	{val:1000, name:"kilo", abbreviation:"K", exponent:"3"},
+	{val:0.1, name:"kilo", abbreviation:"", exponent:"-1"},
+	{val:0.01, name:"kilo", abbreviation:"", exponent:"-2"},
+	{val:0.001, name:"kilo", abbreviation:"", exponent:"-3"},
+	{val:0.0001, name:"kilo", abbreviation:"", exponent:"-4"},
+	{val:0.00001, name:"kilo", abbreviation:"", exponent:"-5"},
+	{val:0.000001, name:"kilo", abbreviation:"", exponent:"-6"}
+
+
 ];
-
-var ipMemoryCache = {};
-var ipCache = {
-	get:function(key) {
-		return new Promise(function(resolve, reject) {
-			if (ipMemoryCache[key] != null) {
-				resolve({key:key, value:ipMemoryCache[key]});
-
-				return;
-			}
-
-			if (redisCache.active) {
-				redisCache.get("ip-" + key).then(function(redisResult) {
-					if (redisResult != null) {
-						resolve({key:key, value:redisResult});
-
-						return;
-					}
-
-					resolve({key:key, value:null});
-				});
-
-			} else {
-				resolve({key:key, value:null});
-			}
-		});
-	},
-	set:function(key, value, expirationMillis) {
-		ipMemoryCache[key] = value;
-
-		if (redisCache.active) {
-			redisCache.set("ip-" + key, value, expirationMillis);
-		}
-	}
-};
-
-
 
 function redirectToConnectPageIfNeeded(req, res) {
 	if (!req.session.host) {
@@ -303,27 +268,22 @@ function getAssetValue(vout, assetName) {
 	return 0;
 }
 
-function getTxTotalInputOutputValues(tx, txInputs, blockHeight, assetName) {
+function getTxTotalInputOutputValues(tx, blockHeight, assetName) {
 	var totalInputValue = new Decimal(0);
 	var totalOutputValue = new Decimal(0);
 	if(!assetName) {
 		assetName = coinConfig.ticker;
 	}
 	try {
-		for (var i = 0; i < tx.vin.length; i++) {
-			if (tx.vin[i].coinbase) {
+		for (let i = 0; i < tx.vin.length; i++) {
+			let vin = tx.vin[i];
+			if (vin.coinbase) {
 				totalInputValue = totalInputValue.plus(new Decimal(coinConfig.blockRewardFunction(blockHeight)));
-
 			} else {
-				var txInput = txInputs[i];
-
-				if (txInput) {
+				if (vin.value || vin.scriptPubKey) {
 					try {
-						var vout = txInput.vout[tx.vin[i].vout];
-						var value = getAssetValue(vout, assetName);
-						if (value) {
-							totalInputValue = totalInputValue.plus(new Decimal(value));
-						}
+						let value = getAssetValue(vin, assetName);
+						totalInputValue = totalInputValue.plus(new Decimal(value));
 					} catch (err) {
 						logError("2397gs0gsse", err, {txid:tx.txid, vinIndex:i});
 					}
@@ -331,33 +291,41 @@ function getTxTotalInputOutputValues(tx, txInputs, blockHeight, assetName) {
 			}
 		}
 
-		for (var i = 0; i < tx.vout.length; i++) {
-			var value = getAssetValue(tx.vout[i], assetName);
+		for (let i = 0; i < tx.vout.length; i++) {
+			let value = getAssetValue(tx.vout[i], assetName);
 			totalOutputValue = totalOutputValue.plus(new Decimal(value));
 		}
 	} catch (err) {
-		logError("2308sh0sg44", err, {tx:tx, txInputs:txInputs, blockHeight:blockHeight});
+		logError("2308sh0sg44", err, {tx:tx, blockHeight:blockHeight});
 	}
 
 	return {input:totalInputValue, output:totalOutputValue};
 }
 
-function getBlockTotalFeesFromCoinbaseTxAndBlockHeight(coinbaseTx, blockHeight) {
+function getBlockTotalFeesFromCoinbaseTxAndBlockHeight(coinbaseTx, blockHeight, isProofOfStake) {
 	if (coinbaseTx == null) {
 		return 0;
 	}
 
-	var blockReward = coinConfig.blockRewardFunction(blockHeight);
+	let blockReward = coinConfig.blockRewardFunction(blockHeight);
+	let totalStake = 0;
+	if(isProofOfStake) {
+		for(let vin of coinbaseTx.vin) {
+			if(vin.value) {
+				totalStake += vin.value;
+			}
+		}
+	}
 
-	var totalOutput = new Decimal(0);
-	for (var i = 0; i < coinbaseTx.vout.length; i++) {
-		var outputValue = coinbaseTx.vout[i].value;
+	let totalOutput = new Decimal(0);
+	for (let i = 0; i < coinbaseTx.vout.length; i++) {
+		let outputValue = coinbaseTx.vout[i].value;
 		if (outputValue > 0) {
 			totalOutput = totalOutput.plus(new Decimal(outputValue));
 		}
 	}
 
-	return totalOutput.minus(new Decimal(blockReward));
+	return totalOutput.minus(new Decimal(blockReward + totalStake));
 }
 
 function refreshExchangeRates() {
@@ -387,71 +355,6 @@ function refreshExchangeRates() {
 	}
 }
 
-// Uses ipstack.com API
-function geoLocateIpAddresses(ipAddresses, provider) {
-	return new Promise(function(resolve, reject) {
-		if (config.privacyMode || config.credentials.ipStackComApiAccessKey === undefined) {
-			resolve({});
-
-			return;
-		}
-
-		var ipDetails = {ips:ipAddresses, detailsByIp:{}};
-
-		var promises = [];
-		for (var i = 0; i < ipAddresses.length; i++) {
-			var ipStr = ipAddresses[i];
-
-			promises.push(new Promise(function(resolve2, reject2) {
-				ipCache.get(ipStr).then(function(result) {
-					if (result.value == null) {
-						var apiUrl = "http://api.ipstack.com/" + result.key + "?access_key=" + config.credentials.ipStackComApiAccessKey;
-
-						debugLog("Requesting IP-geo: " + apiUrl);
-
-						request(apiUrl, function(error, response, body) {
-							if (error) {
-								reject2(error);
-
-							} else {
-								resolve2({needToProcess:true, response:response});
-							}
-						});
-
-					} else {
-						ipDetails.detailsByIp[result.key] = result.value;
-
-						resolve2({needToProcess:false});
-					}
-				});
-			}));
-		}
-
-		Promise.all(promises).then(function(results) {
-			for (var i = 0; i < results.length; i++) {
-				if (results[i].needToProcess) {
-					var res = results[i].response;
-					if (res != null && res["statusCode"] == 200) {
-						var resBody = JSON.parse(res["body"]);
-						var ip = resBody["ip"];
-
-						ipDetails.detailsByIp[ip] = resBody;
-
-						ipCache.set(ip, resBody, 1000 * 60 * 60 * 24 * 365);
-					}
-				}
-			}
-
-			resolve(ipDetails);
-
-		}).catch(function(err) {
-			logError("80342hrf78wgehdf07gds", err);
-
-			reject(err);
-		});
-	});
-}
-
 function parseExponentStringDouble(val) {
 	var [lead,decimal,pow] = val.toString().split(/e|\./);
 	return +pow <= 0
@@ -460,10 +363,10 @@ function parseExponentStringDouble(val) {
 }
 
 function formatLargeNumber(n, decimalPlaces) {
-	for (var i = 0; i < exponentScales.length; i++) {
-		var item = exponentScales[i];
+	for (let i = 0; i < exponentScales.length; i++) {
+		let item = exponentScales[i];
 
-		var fraction = new Decimal(n / item.val);
+		let fraction = new Decimal(n / item.val);
 		if (fraction >= 1) {
 			return [fraction.toDecimalPlaces(decimalPlaces), item];
 		}
@@ -643,68 +546,33 @@ function getStatsSummary(json) {
 	updateElementValue("price", price);*/
 }
 
-function isIpPortReachable(ip, port) {
-		return reachableCache.tryCache(`${ip}:${port}`, 600000, () => {
-			return isPortReachable(port, {host  : ip, timeout : 1000});
-		});
-}
-
-function clearIpList() {
-	ipList = {};
-}
-
-async function isIpPortReachableFromCache(ip, port) {
-	ipList[ip] = port;
-	var reachable = await reachableCache.get(`${ip}:${port}`);
-	if(reachable == undefined || reachable == null) {
-			return "Not Cached"
+function extractedVinVout(inputVout, vin) {
+	if (inputVout && inputVout.scriptPubKey) {
+		findAddressVout(inputVout);
+		vin.address = inputVout.address;
+		vin.value = inputVout.value;
+		vin.valueSat = inputVout.valueSat;
+		vin.scriptPubKey = inputVout.scriptPubKey;
 	}
-	return reachable;
 }
 
-function checkIps(checkCount) {
-	Object.keys(ipList).forEach(ip => {
-		var port = ipList[ip];
-		//console.log("checking if reachable %s:%s", ip, port);
-		isIpPortReachable(ip, port).then(reachable => {
-			var log = `${ip}:${port} is ${reachable ? "reachable" : "no reachable"}`;
-			if(checkCount) {
-				checkCount.count++;
-				if(reachable) {
-					checkCount.reachable++;
-				}
-			}
-			debugLog(log);
-			//console.log(log);
-		}).catch(err => {
-			console.log(err);
-		})
-	});
-}
-
-function checkIpsAsync() {
-	return new Promise((resolve, reject) => {
-		const checkCount = {count : 0, reachable: 0};
-		checkIps(checkCount);
-		const job = schedule.scheduleJob("0/1 * * * *", () => {
-			console.log("checkCount.count ", checkCount.count);
-				if(checkCount.count >= Object.keys(ipList).length) {
-					resolve(`${checkCount.reachable}/${checkCount.count}`);
-					job.cancel();
-				}
+function findAddressVout(vout) {
+	if(vout.scriptPubKey.addresses) {
+		vout.address = vout.scriptPubKey.addresses[0];
+	} else if(vout.scriptPubKey.address) {
+		vout.address = vout.scriptPubKey.address;
+	} else if(vout.scriptPubKey.type === "pubkey") {
+		let pubkey = vout.scriptPubKey.asm.substring(0, vout.scriptPubKey.asm.length - 12);
+		let network = coins.networks[config.coin].bitcoinjs
+		let { address} = bitcoinjs.payments.p2pkh({
+			pubkey :  Buffer.from(pubkey, 'hex'),
+			network : network
 		});
-	});
-}
-
-function scheduleCheckIps() {
-	schedule.scheduleJob("*/10 * * * *", checkIps);
+		vout.address = address;
+	}
 }
 
 module.exports = {
-	checkIps: checkIps,
-	checkIpsAsync: checkIpsAsync,
-	isIpPortReachableFromCache: isIpPortReachableFromCache,
-	scheduleCheckIps: scheduleCheckIps,
 	reflectPromise: reflectPromise,
 	redirectToConnectPageIfNeeded: redirectToConnectPageIfNeeded,
 	hex2ascii: hex2ascii,
@@ -724,7 +592,6 @@ module.exports = {
 	refreshExchangeRates: refreshExchangeRates,
 	parseExponentStringDouble: parseExponentStringDouble,
 	formatLargeNumber: formatLargeNumber,
-	geoLocateIpAddresses: geoLocateIpAddresses,
 	getTxTotalInputOutputValues: getTxTotalInputOutputValues,
 	rgbToHsl: rgbToHsl,
 	colorHexToRgb: colorHexToRgb,
@@ -733,6 +600,7 @@ module.exports = {
 	buildQrCodeUrls: buildQrCodeUrls,
 	ellipsize: ellipsize,
 	getStatsSummary: getStatsSummary,
-	clearIpList: clearIpList,
-	getDifficultyData: getDifficultyData
+	getDifficultyData: getDifficultyData,
+	extractedVinVout: extractedVinVout,
+	findAddressVout: findAddressVout
 };

@@ -31,6 +31,8 @@ var csurf = require("csurf");
 var config = require("./app/config.js");
 var simpleGit = require('simple-git');
 var utils = require("./app/utils.js");
+var pingUtils = require("./app/pingUtils.js");
+
 var moment = require("moment");
 var Decimal = require('decimal.js');
 var bitcoinCore = require("bitcoin-core");
@@ -99,6 +101,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 process.on("unhandledRejection", (reason, p) => {
 	debugLog("Unhandled Rejection at: Promise", p, "reason:", reason, "stack:", (reason != null ? reason.stack : "null"));
 });
+process.on('uncaughtException', (err) => {
+	debugLog("Unhandled Exception: ", err);
+
+	// Handle the error safely
+	console.log(err)
+})
 
 function loadMiningPoolConfigs() {
 	global.miningPoolsConfigs = [];
@@ -208,7 +216,7 @@ app.continueStartup = function() {
 	};
 
 	global.rpcClient = new bitcoinCore(rpcClientProperties);
-
+	global.rpcClient.display_host = rpcCred.display_host;
 	var rpcClientNoTimeoutProperties = {
 		host: rpcCred.host,
 		port: rpcCred.port,
@@ -226,13 +234,6 @@ app.continueStartup = function() {
 	// });
 	// btcEventListener.listen();
 
-	var mongoDBConfig = {
-		address : process.env.DB_URL,
-		port : process.env.DB_PORT,
-		user : process.env.DB_USERNAME,
-		password: process.env.DB_PASSWORD,
-		database : process.env.DB_DATABASE
-	}
 	// global.blockchainSync = new BlockchainSync(mongoDBConfig);
 	// global.blockchainSync.syncAddressBalance().then(result => {
 	// 	console.log("addresss balance ", result);
@@ -242,7 +243,7 @@ app.continueStartup = function() {
 	//});
 
 	if(global.coinConfig.masternodeSupported) {
-		utils.scheduleCheckIps();
+		pingUtils.scheduleCheckIps();
 	}
 
 	coreApi.getNetworkInfo().then(function(getnetworkinfo) {
@@ -441,12 +442,12 @@ app.use(csurf(), (req, res, next) => {
 
 app.use('/', baseActionsRouter);
 if(coins[config.coin].api) {
-	var rateLimit = require("express-rate-limit");
-	var apiProperties = coins[config.coin].api();
-	var limiter = rateLimit(apiProperties.limit);
-	var apiRounter = express.Router();
+	let rateLimit = require("express-rate-limit");
+	let apiProperties = coins[config.coin].api();
+	let limiter = rateLimit(apiProperties.limit);
+	let apiRounter = express.Router();
 	app.use(apiProperties.base_uri, limiter);
-	var restfulAPI = new Restful(apiRounter, apiProperties);
+	let restfulAPI = new Restful(apiRounter, apiProperties);
 	app.use(apiProperties.base_uri, apiRounter);
 }
 

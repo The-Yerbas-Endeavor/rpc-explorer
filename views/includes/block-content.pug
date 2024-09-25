@@ -55,6 +55,11 @@ div(class="tab-content")
 								span #{moment.utc(new Date(result.getblock.time * 1000)).format("Y-MM-DD HH:mm:ss")} utc
 								- var timeAgoTime = result.getblock.time;
 								include ./time-ago.pug
+						if(result.getblock.flags)
+							div(class="row")
+								div(class="summary-split-table-label") Flags
+								div(class="summary-split-table-content monospace")
+									span #{result.getblock.flags}
 
 						div(class="row")
 							div(class="summary-split-table-label") Transactions
@@ -230,11 +235,9 @@ div(class="tab-content")
 						div(class="card-body px-lg-3 px-2")
 							//pre
 							//	code(class="json bg-light") #{JSON.stringify(result.txInputsByTransaction[tx.txid], null, 4)}
-							if (true)
-								- var txInputs = result.txInputsByTransaction[tx.txid];
-								- var blockHeight = result.getblock.height;
+							- var blockHeight = result.getblock.height;
 
-								include ./transaction-io-details.pug
+							include ./transaction-io-details.pug
 
 					//pre
 					//	code(class="json bg-light") #{JSON.stringify(tx, null, 4)}

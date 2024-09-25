@@ -69,7 +69,7 @@ Create user with read/write access:
 Configuration options may be passed as environment variables
 or by creating an env file at `~/.config/btc-rpc-explorer.env`
 or at `.env` in the working directory.
-See [example](examples/yerb/btc-rpc-explorer.env) for a list of the options and details for formatting `.env`.
+See [example](examples/rtm/btc-rpc-explorer.env) for a list of the options and details for formatting `.env`.
 
 You may also pass options as CLI arguments, for example:
 
@@ -82,7 +82,7 @@ See `rpc-explorer --help` for the full list of CLI options.
 ## Run via Docker
 
 ```
-cp seed yerbasd/
+cp seed raptoreumd/
 docker-compose up --build --force-recreate
 
 # Support

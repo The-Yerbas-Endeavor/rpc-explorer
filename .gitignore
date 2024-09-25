@@ -58,4 +58,7 @@ typings/
 .env
 
 .mongodb
-yerbasd/.yerbascore
+raptoreumd/.raptoreumcore
+/.idea/
+/package-lock.json
+/.env-testnet
